@@ -4978,7 +4978,11 @@ trait Quotes { self: runtime.QuoteUnpickler & runtime.QuoteMatching =>
         @deprecated("Use fieldMembers", "3.1.0")
         def memberFields: List[Symbol]
 
-        /** Gets all non-private fields declared or inherited. */
+        /** Gets all non-private fields declared or inherited.
+         *
+         *  Members of this class come first, then those inherited from each base class in linearization order.
+         *  Members of the same class are in declaration order.
+         */
         def fieldMembers: List[Symbol]
 
         /** Gets non-private named methods defined directly inside the class.
@@ -5006,7 +5010,11 @@ trait Quotes { self: runtime.QuoteUnpickler & runtime.QuoteMatching =>
         @deprecated("Use methodMembers", "3.1.0")
         def memberMethods: List[Symbol]
 
-        /** Gets all non-private methods declared or inherited. */
+        /** Gets all non-private methods declared or inherited.
+         *
+         *  Members of this class come first, then those inherited from each base class in linearization order.
+         *  Members of the same class are in declaration order.
+         */
         def methodMembers: List[Symbol]
 
         /** Gets non-private named type defined directly inside the class.

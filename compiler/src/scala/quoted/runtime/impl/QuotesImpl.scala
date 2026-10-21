@@ -3058,9 +3058,9 @@ class QuotesImpl private (using val ctx: Context) extends Quotes, QuoteUnpickler
 
         def memberFields: List[Symbol] = fieldMembers
         def fieldMembers: List[Symbol] =
-          lookupPrefix.allMembers.iterator.map(_.symbol).collect {
+          inDeclarationOrder(lookupPrefix.allMembers.iterator.map(_.symbol).collect {
             case sym if isField(sym) => sym.asTerm
-          }.toList
+          }.toList)
 
         def declaredMethod(name: String): List[Symbol] =
           self.typeRef.decls.iterator.collect {
@@ -3080,9 +3080,19 @@ class QuotesImpl private (using val ctx: Context) extends Quotes, QuoteUnpickler
 
         def memberMethods: List[Symbol] = methodMembers
         def methodMembers: List[Symbol] =
-          lookupPrefix.allMembers.iterator.map(_.symbol).collect {
+          inDeclarationOrder(lookupPrefix.allMembers.iterator.map(_.symbol).collect {
             case sym if isMethod(sym) => sym.asTerm
-          }.toList
+          }.toList)
+
+        /** Sorts members by their owner's position in the linearization, then by declaration order in that owner.
+         *  `allMembers` is collected through a set of names, so its order changes between compilations (#27368).
+         */
+        private def inDeclarationOrder(members: List[Symbol]): List[Symbol] =
+          val ownerIndex: Map[Symbol, Int] = lookupPrefix.baseClasses.zipWithIndex.toMap
+          val declIndex = members.map(_.owner).distinct.flatMap(_.info.decls.toList.zipWithIndex).toMap
+          members.sortBy { sym =>
+            (ownerIndex.getOrElse(sym.owner, Int.MaxValue), declIndex.getOrElse(sym, Int.MaxValue), sym.name.toString)
+          }
 
         def declaredType(name: String): List[Symbol] =
           self.typeRef.decls.iterator.collect {
